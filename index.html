@@ -37,6 +37,7 @@
             max-width: 400px;
             width: 85%;
             box-sizing: border-box;
+            z-index: 2;
         }
         .gif-wrapper {
             width: 100%;
@@ -55,7 +56,7 @@
             color: #d32f2f;
             margin-bottom: 20px;
         }
-        h1 { font-size: 1.7rem; }
+        h1 { font-size: 1.6rem; min-height: 60px; }
         input[type="text"] {
             width: 100%;
             padding: 12px;
@@ -107,8 +108,8 @@
             cursor: pointer;
             box-sizing: border-box;
         }
-        #yesBtn { background-color: #4caf50; color: white; }
-        #noBtn { background-color: #f44336; color: white; position: relative; }
+        #yesBtn { background-color: #4caf50; color: white; transition: transform 0.2s; }
+        #noBtn { background-color: #f44336; color: white; position: relative; z-index: 999; }
         .secondary-btn { background-color: #f0f0f0; color: #333; }
         .reveal-btn {
             background: none; border: none; color: #757575;
@@ -119,7 +120,6 @@
 </head>
 <body>
 
-    <!-- Password Screen Overlay -->
     <div id="passwordScreen" class="overlay">
         <div class="card">
             <h2>🔒 Access Restricted</h2>
@@ -127,30 +127,28 @@
             <input type="text" id="passwordInput" placeholder="Who is this from?..." autocomplete="off">
             
             <div class="password-actions">
-                <button id="loginBtn">Unlock 💖</button>
-                <button id="hintBtn" class="secondary-btn">Get Hint 💡</button>
+                <button id="loginBtn" onclick="checkPassword()">Unlock 💖</button>
+                <button id="hintBtn" class="secondary-btn" onclick="showNextHint()">Get Hint 💡</button>
             </div>
             
             <p id="hintText" class="hint-box" style="display: none;"></p>
             <p id="loginError" class="error-msg"></p>
-            <button id="revealBtn" class="reveal-btn" style="display: none;">Reveal Password 🤫</button>
+            <button id="revealBtn" class="reveal-btn" style="display: none;" onclick="revealPassword()">Reveal Password 🤫</button>
         </div>
     </div>
 
-    <!-- Main Proposal Card -->
     <div id="proposalScreen" class="card" style="display: none;">
         <div class="gif-wrapper">
-            <img id="gif" src="https://media.tenor.com/w9v2g1vNlY8AAAAi/mochi-peach.gif" alt="Cute Proposal">
+            <img id="gif" src="https://c.tenor.com/w9v2g1vNlY8AAAAC/mochi-peach.gif" alt="Cute Proposal">
         </div>
         <h1 id="question">Will you marry me Ainon? 💍</h1>
         
         <div class="btn-container">
-            <button id="yesBtn">YES! 💖</button>
-            <button id="noBtn">No 😢</button>
+            <button id="yesBtn" onclick="handleYesClick()">YES! 💖</button>
+            <button id="noBtn" onclick="handleNoProgress()" onmouseover="handleNoHover()" ontouchstart="handleNoTouch(event)">No 😢</button>
         </div>
     </div>
 
-    <!-- Interactive Script Embedded Directly -->
     <script>
         const ALLOWED_PASSWORDS = ["towfiqul", "towfiq", "towfik"]; 
 
@@ -163,84 +161,90 @@
             "Think of a name... 7 letters, starts with T!"
         ];
 
+        // Using clean direct-path CDN URLs to force graphics engines to load them without errors
         const STAGES = [
             {
                 text: "did you click NO by mistake? 🤔",
-                gif: "https://media.tenor.com/w9v2g1vNlY8AAAAi/mochi-peach.gif"
+                gif: "https://c.tenor.com/w9v2g1vNlY8AAAAC/mochi-peach.gif"
             },
             {
                 text: "are you like sure sure?? 🥺",
-                gif: "https://media.tenor.com/00Kk9zP-u34AAAAi/pepe-cry.gif"
+                gif: "https://c.tenor.com/00Kk9zP-u34AAAAC/pepe-cry.gif"
             },
             {
                 text: "please Ainon pookie? 🥺😭😭",
-                gif: "https://media.tenor.com/Z4vU_p_M_EAAAAAi/sad-cat-holding-phone.gif"
+                gif: "https://c.tenor.com/Z4vU_p_M_EAAAAAC/sad-cat-holding-phone.gif"
             },
             {
                 text: "if you say no I will be very sad 😢",
-                gif: "https://media.tenor.com/beXf77p1v7QAAAAi/the-office-michael-scott.gif"
+                gif: "https://c.tenor.com/beXf77p1v7QAAAAC/the-office-michael-scott.gif"
             },
             {
                 text: "maybe read the question one last time? last chance...",
-                gif: "https://media.tenor.com/b_86h6Hl788AAAAi/shocked-michael-scott.gif"
+                gif: "https://c.tenor.com/b_86h6Hl788AAAAC/shocked-michael-scott.gif"
             }
         ];
 
-        const passwordScreen = document.getElementById('passwordScreen');
-        const proposalScreen = document.getElementById('proposalScreen');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginBtn = document.getElementById('loginBtn');
-        const hintBtn = document.getElementById('hintBtn');
-        const hintText = document.getElementById('hintText');
-        const loginError = document.getElementById('loginError');
-        const revealBtn = document.getElementById('revealBtn');
-
-        const noBtn = document.getElementById('noBtn');
-        const yesBtn = document.getElementById('yesBtn');
-        const question = document.getElementById('question');
-        const gif = document.getElementById('gif');
+        // Fun dynamic text lines that will cycle infinitely while the button bounces around
+        const FLOATING_TEXTS = [
+            "Nice try! Still no! 😜",
+            "Error 404: Rejection not found! ❌",
+            "You can't escape this love! ❤️",
+            "Click YES already! 👀",
+            "Catch me if you can! 🏃‍♂️💨",
+            "Still waiting for that YES... ⏳"
+        ];
 
         let attemptCount = 0;
         let hintIndex = 0;
         let noCount = 0;
+        let floatingTextIndex = 0;
 
-        loginBtn.addEventListener('click', checkPassword);
-        passwordInput.addEventListener('keypress', (e) => {
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') checkPassword();
         });
 
         function checkPassword() {
-            const userInput = passwordInput.value.trim().toLowerCase();
-            
+            const userInput = document.getElementById('passwordInput').value.trim().toLowerCase();
             if (ALLOWED_PASSWORDS.includes(userInput)) {
-                passwordScreen.style.display = 'none';
-                proposalScreen.style.display = 'block';
+                document.getElementById('passwordScreen').style.display = 'none';
+                document.getElementById('proposalScreen').style.display = 'block';
             } else {
                 attemptCount++;
-                loginError.innerText = "Incorrect answer! Try again or check the hints.";
+                document.getElementById('loginError').innerText = "Incorrect answer! Try again or check the hints.";
                 if (attemptCount >= 3) {
-                    revealBtn.style.display = 'inline-block';
+                    document.getElementById('revealBtn').style.display = 'inline-block';
                 }
             }
         }
 
-        hintBtn.addEventListener('click', () => {
+        function showNextHint() {
+            const hintText = document.getElementById('hintText');
             hintText.style.display = 'block';
-            hintText.innerText = `Hint: ${HINTS[hintIndex]}`;
+            hintText.innerText = "Hint: " + HINTS[hintIndex];
             hintIndex = (hintIndex + 1) % HINTS.length;
-        });
+        }
 
-        revealBtn.addEventListener('click', () => {
-            passwordInput.value = "Towfiqul";
-            loginError.innerText = "Filled it out for you! Click Unlock 💖";
-        });
+        function revealPassword() {
+            document.getElementById('passwordInput').value = "Towfiqul";
+            document.getElementById('loginError').innerText = "Filled it out for you! Click Unlock 💖";
+        }
 
         function handleNoProgress() {
+            const noBtn = document.getElementById('noBtn');
+            const question = document.getElementById('question');
+            const gif = document.getElementById('gif');
+
             if (noCount < STAGES.length) {
                 question.innerText = STAGES[noCount].text;
                 gif.src = STAGES[noCount].gif;
                 noCount++;
             } else {
+                // Loop dynamic floating text
+                question.innerText = FLOATING_TEXTS[floatingTextIndex];
+                floatingTextIndex = (floatingTextIndex + 1) % FLOATING_TEXTS.length;
+                
+                // Swap layout mode to floating absolute coordinates
                 if (noBtn.style.position !== 'fixed') {
                     noBtn.style.position = 'fixed';
                 }
@@ -248,32 +252,44 @@
             }
         }
 
-        function moveNoButton() {
-            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
-            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
-            noBtn.style.left = `${x}px`;
-            noBtn.style.top = `${y}px`;
-        }
-
-        noBtn.addEventListener('click', handleNoProgress);
-        noBtn.addEventListener('mouseover', () => {
-            if (noCount >= STAGES.length) moveNoButton();
-        });
-        noBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
+        function handleNoHover() {
             if (noCount >= STAGES.length) {
                 moveNoButton();
-            } else {
-                handleNoProgress();
             }
-        });
+        }
 
-        yesBtn.addEventListener('click', () => {
-            question.innerHTML = "YAYY! 🎉 I can't believe you said yes! I love you, Ainon! 🥂✨";
-            gif.src = "https://media.tenor.com/26FLdmIp6wJr91JAI/giphy.gif"; 
-            noBtn.style.display = 'none';
-            yesBtn.style.transform = "scale(1.2)";
-        });
+        function handleNoTouch(e) {
+            // Intercepts touch events on smartphones perfectly
+            if (noCount >= STAGES.length) {
+                e.preventDefault();
+                // Cycle text on tap too
+                document.getElementById('question').innerText = FLOATING_TEXTS[floatingTextIndex];
+                floatingTextIndex = (floatingTextIndex + 1) % FLOATING_TEXTS.length;
+                moveNoButton();
+            }
+        }
+
+        function moveNoButton() {
+            const noBtn = document.getElementById('noBtn');
+            
+            // Constrain movement coordinates strictly inside the visible screen layout
+            const padding = 40;
+            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+            
+            const x = Math.max(padding, Math.floor(Math.random() * maxX));
+            const y = Math.max(padding, Math.floor(Math.random() * maxY));
+            
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+        }
+
+        function handleYesClick() {
+            document.getElementById('question').innerHTML = "YAYY! 🎉 I can't believe you said yes! I love you, Ainon! 🥂✨";
+            document.getElementById('gif').src = "https://c.tenor.com/26FLdmIp6wJr91JAI/giphy.gif"; 
+            document.getElementById('noBtn').style.display = 'none';
+            document.getElementById('yesBtn').style.transform = "scale(1.2)";
+        }
     </script>
 </body>
 </html>
