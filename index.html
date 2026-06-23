@@ -88,15 +88,17 @@
             margin: 10px 0 0 0;
             font-weight: bold;
         }
+        /* Grid system container ensures clean side-by-side positioning without initial collision */
         .btn-container {
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 20px;
             margin-top: 25px;
             width: 100%;
-            height: 60px; /* Constrains structural area */
-            position: relative;
+            height: 140px; /* Generous area within the card for smooth dodging movement */
+            box-sizing: border-box;
         }
         button {
             padding: 12px 28px;
@@ -107,8 +109,8 @@
             cursor: pointer;
             box-sizing: border-box;
         }
-        #yesBtn { background-color: #4caf50; color: white; transition: transform 0.2s; }
-        #noBtn { background-color: #f44336; color: white; position: absolute; z-index: 999; }
+        #yesBtn { background-color: #4caf50; color: white; transition: transform 0.2s; position: relative; }
+        #noBtn { background-color: #f44336; color: white; position: relative; z-index: 999; }
         .secondary-btn { background-color: #f0f0f0; color: #333; }
         .reveal-btn {
             background: none; border: none; color: #757575;
@@ -158,7 +160,6 @@
             "Think of a name... 7 letters, starts with T!"
         ];
 
-        // Using native animated emoji states instead of failing image links
         const STAGES = [
             { text: "did you click NO by mistake? 🤔", emoji: "🤨" },
             { text: "are you like sure sure?? 🥺", emoji: "😭" },
@@ -181,17 +182,6 @@
         let noCount = 0;
         let floatingTextIndex = 0;
 
-        // Position the No button to the right of the Yes button immediately on layout setup
-        window.addEventListener('DOMContentLoaded', () => {
-            resetNoButtonDefaultPosition();
-        });
-
-        function resetNoButtonDefaultPosition() {
-            const noBtn = document.getElementById('noBtn');
-            noBtn.style.left = '55%';
-            noBtn.style.top = '8px';
-        }
-
         document.getElementById('passwordInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') checkPassword();
         });
@@ -201,7 +191,6 @@
             if (ALLOWED_PASSWORDS.includes(userInput)) {
                 document.getElementById('passwordScreen').style.display = 'none';
                 document.getElementById('proposalScreen').style.display = 'block';
-                resetNoButtonDefaultPosition();
             } else {
                 attemptCount++;
                 document.getElementById('loginError').innerText = "Incorrect answer! Try again or check the hints.";
@@ -256,14 +245,40 @@
 
         function moveNoButtonInsideCard() {
             const noBtn = document.getElementById('noBtn');
+            const yesBtn = document.getElementById('yesBtn');
             const container = document.getElementById('boxContainer');
             
-            // Limit coordinate boundaries exactly within the button container wrapper limits
+            if (noBtn.style.position !== 'absolute') {
+                noBtn.style.position = 'absolute';
+            }
+            
             const maxX = container.clientWidth - noBtn.offsetWidth;
             const maxY = container.clientHeight - noBtn.offsetHeight;
             
-            const randomX = Math.floor(Math.random() * maxX);
-            const randomY = Math.floor(Math.random() * maxY);
+            // Get boundaries of the YES button relative to container layout
+            const yesLeft = yesBtn.offsetLeft;
+            const yesTop = yesBtn.offsetTop;
+            const yesWidth = yesBtn.offsetWidth;
+            const yesHeight = yesBtn.offsetHeight;
+            
+            let randomX, randomY;
+            let overlapping = true;
+            let safetyCounter = 0; // Avoid potential infinite loops
+
+            while (overlapping && safetyCounter < 100) {
+                randomX = Math.floor(Math.random() * maxX);
+                randomY = Math.floor(Math.random() * maxY);
+                
+                // Add an extra 15px safety buffer box surrounding the YES button area
+                const buffer = 15;
+                const hitX = (randomX + noBtn.offsetWidth >= yesLeft - buffer) && (randomX <= yesLeft + yesWidth + buffer);
+                const hitY = (randomY + noBtn.offsetHeight >= yesTop - buffer) && (randomY <= yesTop + yesHeight + buffer);
+                
+                if (!(hitX && hitY)) {
+                    overlapping = false;
+                }
+                safetyCounter++;
+            }
             
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
@@ -273,10 +288,12 @@
             document.getElementById('question').innerHTML = "YAYY! 🎉 I can't believe you said yes! I love you, Ainon! 🥂✨";
             document.getElementById('graphic').innerText = "🥳🎉"; 
             document.getElementById('noBtn').style.display = 'none';
-            document.getElementById('yesBtn').style.transform = "scale(1.2)";
-            document.getElementById('yesBtn').style.position = "relative";
-            document.getElementById('yesBtn').style.left = "0px";
-            document.getElementById('yesBtn').style.top = "0px";
+            
+            const yesBtn = document.getElementById('yesBtn');
+            yesBtn.style.transform = "scale(1.2)";
+            yesBtn.style.left = "0px";
+            yesBtn.style.top = "0px";
+            yesBtn.style.position = "relative";
         }
     </script>
 </body>
