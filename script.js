@@ -1,5 +1,4 @@
 // --- CONFIGURATION ---
-// Acceptable password variations (case-insensitive checks)
 const ALLOWED_PASSWORDS = ["towfiqul", "towfiq", "towfik"]; 
 
 const HINTS = [
@@ -11,7 +10,6 @@ const HINTS = [
     "Think of a name... 7 letters, starts with T!"
 ];
 
-// Rejection sequence assets
 const STAGES = [
     {
         text: "did you click NO by mistake? 🤔",
@@ -35,7 +33,6 @@ const STAGES = [
     }
 ];
 
-// --- DOM ELEMENTS ---
 const passwordScreen = document.getElementById('passwordScreen');
 const proposalScreen = document.getElementById('proposalScreen');
 const passwordInput = document.getElementById('passwordInput');
@@ -50,12 +47,10 @@ const yesBtn = document.getElementById('yesBtn');
 const question = document.getElementById('question');
 const gif = document.getElementById('gif');
 
-// --- STATE VARIABLES ---
 let attemptCount = 0;
 let hintIndex = 0;
 let noCount = 0;
 
-// --- PASSWORD SCREEN HANDLERS ---
 loginBtn.addEventListener('click', checkPassword);
 passwordInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') checkPassword();
@@ -64,44 +59,69 @@ passwordInput.addEventListener('keypress', (e) => {
 function checkPassword() {
     const userInput = passwordInput.value.trim().toLowerCase();
     
-    // Check if the input matches any allowed variation
     if (ALLOWED_PASSWORDS.includes(userInput)) {
-        passwordScreen.classList.add('hidden');
-        proposalScreen.classList.remove('hidden');
+        passwordScreen.setAttribute('hidden', 'true');
+        passwordScreen.style.display = 'none';
+        proposalScreen.removeAttribute('hidden');
     } else {
         attemptCount++;
         loginError.innerText = "Incorrect answer! Try again or check the hints.";
-        
-        // Show the reveal password option after 3 failed attempts
         if (attemptCount >= 3) {
-            revealBtn.classList.remove('hidden');
+            revealBtn.removeAttribute('hidden');
         }
     }
 }
 
-// Hint button handling
 hintBtn.addEventListener('click', () => {
-    hintText.classList.remove('hidden');
+    hintText.removeAttribute('hidden');
     hintText.innerText = `Hint: ${HINTS[hintIndex]}`;
-    
-    // Cycle sequentially through the hint list
     hintIndex = (hintIndex + 1) % HINTS.length;
 });
 
-// Reveal password button action
 revealBtn.addEventListener('click', () => {
     passwordInput.value = "Towfiqul";
     loginError.innerText = "Filled it out for you! Click Unlock 💖";
 });
 
-// --- PROPOSAL SCREEN HANDLERS ---
 function handleNoProgress() {
     if (noCount < STAGES.length) {
         question.innerText = STAGES[noCount].text;
         gif.src = STAGES[noCount].gif;
         noCount++;
     } else {
-        // Switch layout parameters to fixed position right before moving away
+        if (noBtn.style.position !== 'fixed') {
+            noBtn.style.position = 'fixed';
+        }
+        moveNoButton();
+    }
+}
+
+function moveNoButton() {
+    const x = Math.random() * (window.innerWidth - noBtn.offsetWidth);
+    const y = Math.random() * (window.innerHeight - noBtn.offsetHeight);
+    noBtn.style.left = `${x}px`;
+    noBtn.style.top = `${y}px`;
+}
+
+noBtn.addEventListener('click', handleNoProgress);
+noBtn.addEventListener('mouseover', () => {
+    if (noCount >= STAGES.length) moveNoButton();
+});
+noBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (noCount >= STAGES.length) {
+        moveNoButton();
+    } else {
+        handleNoProgress();
+    }
+});
+
+yesBtn.addEventListener('click', () => {
+    question.innerHTML = "YAYY! 🎉 I can't believe you said yes! I love you, Ainon! 🥂✨";
+    gif.src = "https://media.tenor.com/26FLdmIp6wJr91JAI/giphy.gif"; 
+    noBtn.style.display = 'none';
+    yesBtn.style.transform = "scale(1.2)";
+});
         if (noBtn.style.position !== 'fixed') {
             noBtn.style.position = 'fixed';
         }
