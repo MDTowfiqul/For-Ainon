@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Question for Ainon</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Password Screen Overlay -->
+    <div id="passwordScreen" class="overlay">
+        <div class="card">
+            <h2>🔒 Access Restricted</h2>
+            <p>Please enter the password to open this page:</p>
+            <input type="text" id="passwordInput" placeholder="Who is this from?..." autocomplete="off">
+            
+            <div class="password-actions">
+                <button id="loginBtn">Unlock 💖</button>
+                <button id="hintBtn" class="secondary-btn">Get Hint 💡</button>
+            </div>
+            
+            <p id="hintText" class="hint-box hidden"></p>
+            <p id="loginError" class="error-msg"></p>
+            <button id="revealBtn" class="reveal-btn hidden">Reveal Password 🤫</button>
+        </div>
+    </div>
+
+    <!-- Main Proposal Card (Initially Hidden) -->
+    <div id="proposalScreen" class="card hidden">
+        <div class="gif-wrapper">
+            <img id="gif" src="https://media.tenor.com/w9v2g1vNlY8AAAAi/mochi-peach.gif" alt="Cute Proposal">
+        </div>
+        <h1 id="question">Will you marry me Ainon? 💍</h1>
+        
+        <div class="btn-container">
+            <button id="yesBtn">YES! 💖</button>
+            <button id="noBtn">No 😢</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
