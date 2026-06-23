@@ -42,13 +42,20 @@
         }
         .graphic-wrapper {
             width: 100%;
-            height: 120px;
+            height: 160px; /* Expanded slightly to fit your photo perfectly */
             display: flex;
             justify-content: center;
             align-items: center;
             margin-bottom: 15px;
             font-size: 5rem;
             user-select: none;
+        }
+        .graphic-wrapper img {
+            max-width: 100%;
+            max-height: 160px;
+            object-fit: cover;
+            border-radius: 15px; /* Gives your photo cute rounded corners */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         h1, h2 {
             color: #d32f2f;
@@ -88,7 +95,6 @@
             margin: 10px 0 0 0;
             font-weight: bold;
         }
-        /* Grid system container ensures clean side-by-side positioning without initial collision */
         .btn-container {
             position: relative;
             display: flex;
@@ -97,7 +103,7 @@
             gap: 20px;
             margin-top: 25px;
             width: 100%;
-            height: 140px; /* Generous area within the card for smooth dodging movement */
+            height: 140px;
             box-sizing: border-box;
         }
         button {
@@ -255,7 +261,6 @@
             const maxX = container.clientWidth - noBtn.offsetWidth;
             const maxY = container.clientHeight - noBtn.offsetHeight;
             
-            // Get boundaries of the YES button relative to container layout
             const yesLeft = yesBtn.offsetLeft;
             const yesTop = yesBtn.offsetTop;
             const yesWidth = yesBtn.offsetWidth;
@@ -263,13 +268,12 @@
             
             let randomX, randomY;
             let overlapping = true;
-            let safetyCounter = 0; // Avoid potential infinite loops
+            let safetyCounter = 0;
 
             while (overlapping && safetyCounter < 100) {
                 randomX = Math.floor(Math.random() * maxX);
                 randomY = Math.floor(Math.random() * maxY);
                 
-                // Add an extra 15px safety buffer box surrounding the YES button area
                 const buffer = 15;
                 const hitX = (randomX + noBtn.offsetWidth >= yesLeft - buffer) && (randomX <= yesLeft + yesWidth + buffer);
                 const hitY = (randomY + noBtn.offsetHeight >= yesTop - buffer) && (randomY <= yesTop + yesHeight + buffer);
@@ -286,7 +290,10 @@
 
         function handleYesClick() {
             document.getElementById('question').innerHTML = "YAYY! 🎉 I can't believe you said yes! I love you, Ainon! 🥂✨";
-            document.getElementById('graphic').innerText = "🥳🎉"; 
+            
+            // Replaces the Emoji container with an HTML image tag pulling your direct photo URL
+            document.getElementById('graphic').innerHTML = `<img src="https://file.garden/agG6xxEnpRn5fdD4/For_ainon/Snapchat-1560712516.jpg" alt="Towfiqul Smiling">`;
+            
             document.getElementById('noBtn').style.display = 'none';
             
             const yesBtn = document.getElementById('yesBtn');
